@@ -89,7 +89,7 @@ class Client:
 
     def get_file_info(self, path):
         json_data = dump_path(path)
-        url = urllib.parse.urljoin(self,nameserver_address, 'get_file_info')
+        url = urllib.parse.urljoin(self.nameserver_address, 'get_file_info')
         r = requests.get(url, data=json_data)
         response = json.loads(r.text)
         if get_status(response) == 'success':
