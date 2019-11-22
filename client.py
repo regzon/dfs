@@ -4,101 +4,118 @@ import urllib
 import os
 
 
-def get_status(response):
-    return response['status']
+def get_status(response_json):
+    return response_json['status']
 
 
 def dump_path(path):
     data = {}
     data['path'] = path
-    json_data = json.dumps(data)
-    return json_data
+    request_data = json.dumps(data)
+    return request_data
+
+
+def check_path(working_dir, path):
+    if './' in path:
+        new_path = {x.replace('./', '') for x in path}
+        return working_dir + new_path
+    else:
+        return None
+
+
+def create_dir(path):
+    try:
+        os.mkdir(path)
+    except OSError:
+        print("Creation of the directory %s failed" % path)
+    else:
+        print("Successfully created the directory %s " % path)
 
 
 class Client:
-    def __init__(self):
-        self.nameserver_address = 'http://0.0.0.0:5000'
-        self.working_dir = os.path.dirname(os.path.realpath(__file__))
+    def __init__(self, nameserver_addr):
+        self.nameserver_address = nameserver_addr
+        self.working_dir = '/DFS'
 
     def init(self):
         url = urllib.parse.urljoin(self.nameserver_address, 'init')
-        r = requests.get(url)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
-            data = response['data']
+        response = requests.get(url)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            data = response_json['data']
             size = data['size']
             print('Available size: ', size)
-            # TODO: create new working directory
+            create_dir(self.working_dir)
             return size
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
         return None
 
     def create_file(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'create_file')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'error':
-            message = response['message']
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
-        elif get_status(response) == 'success':
+        elif get_status(response_json) == 'success':
             print('File was successfully created')
 
     def read_file(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'read_file')
-        r = requests.get(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
-            data = response['data']
+        response = requests.get(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            data = response_json['data']
             url = data['download_url']
             print('Download link: ', url)
             return url
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
         return None
 
     def write_file(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'write_file')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
-            data = response['data']
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            data = response_json['data']
             url = data['upload_url']
             print('Upload link: ', url)
             return url
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
         return None
 
     def delete_file(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'delete_file')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'error':
-            message = response['message']
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
-        elif get_status(response) == 'success':
+        elif get_status(response_json) == 'success':
             print('File was successfully deleted')
 
     def get_file_info(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'get_file_info')
-        r = requests.get(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
-            data = response['data']
+        response = requests.get(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            data = response_json['data']
             size = data['size']
             print('File size: ', size)
             return size
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
         return None
 
@@ -106,53 +123,49 @@ class Client:
         data = {}
         data['source_path'] = source_path
         data['destination_path'] = destination_path
-        json_data = json.dumps(data)
+        request_data = json.dumps(data)
         url = urllib.parse.urljoin(self.nameserver_address, 'copy_file')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
             print('File was successfully copied')
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
 
     def read_dir(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'read_dir')
-        r = requests.get(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
-            data = response['data']
+        response = requests.get(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            data = response_json['data']
             filenames = data['filenames']
             print('Requested filenames: ', filenames)
             return filenames
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
         return None
 
     def create_dir(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'create_dir')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
             print('Directory was successfully created')
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
 
     def delete_dir(self, path):
-        json_data = dump_path(path)
+        request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'delete_dir')
-        r = requests.post(url, data=json_data)
-        response = json.loads(r.text)
-        if get_status(response) == 'success':
+        response = requests.post(url, data=request_data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
             print('Directory was successfully deleted')
-        elif get_status(response) == 'error':
-            message = response['message']
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
             print(message)
-
-
-if __name__ == '__main__':
-    pass
