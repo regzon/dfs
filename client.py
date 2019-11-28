@@ -1,5 +1,7 @@
 import requests
 import json
+import urllib
+
 
 nameserver_address = '0.0.0.0:5000'
 
@@ -9,7 +11,8 @@ def main():
 
 
 def init():
-    r = requests.get(nameserver_address + '/init')
+    url = urllib.parse.urljoin(nameserver_address, 'init')
+    r = requests.get(url)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         data = response['data']
@@ -23,8 +26,9 @@ def init():
 
 
 def create_file(path):
-    json_data = dump_file_path(path)
-    r = requests.post(nameserver_address + '/create_file', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'create_file')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'error':
         message = response['message']
@@ -34,8 +38,9 @@ def create_file(path):
 
 
 def read_file(path):
-    json_data = dump_file_path(path)
-    r = requests.get(nameserver_address + '/read_file', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'read_file')
+    r = requests.get(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         data = response['data']
@@ -49,8 +54,9 @@ def read_file(path):
 
 
 def write_file(path):
-    json_data = dump_file_path(path)
-    r = requests.post(nameserver_address + '/write_file', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'write_file')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         data = response['data']
@@ -64,8 +70,9 @@ def write_file(path):
 
 
 def delete_file(path):
-    json_data = dump_file_path(path)
-    r = requests.post(nameserver_address + '/delete_file', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'delete_file')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'error':
         message = response['message']
@@ -75,8 +82,9 @@ def delete_file(path):
 
 
 def get_file_info(path):
-    json_data = dump_file_path(path)
-    r = requests.get(nameserver_address + '/get_file_info', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'get_file_info')
+    r = requests.get(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         data = response['data']
@@ -94,7 +102,8 @@ def copy_file(source_path, destination_path):
     data['source_path'] = source_path
     data['destination_path'] = destination_path
     json_data = json.dumps(data)
-    r = requests.post(nameserver_address + '/copy_file', data=json_data)
+    url = urllib.parse.urljoin(nameserver_address, 'copy_file')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         print('File was successfully copied')
@@ -104,8 +113,9 @@ def copy_file(source_path, destination_path):
 
 
 def read_dir(path):
-    json_data = dump_file_path(path)
-    r = requests.get(nameserver_address + '/read_dir', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'read_dir')
+    r = requests.get(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         data = response['data']
@@ -119,8 +129,9 @@ def read_dir(path):
 
 
 def create_dir(path):
-    json_data = dump_file_path(path)
-    r = requests.post(nameserver_address + '/create_dir', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'create_dir')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         print('Directory was successfully created')
@@ -130,8 +141,9 @@ def create_dir(path):
 
 
 def delete_dir(path):
-    json_data = dump_file_path(path)
-    r = requests.post(nameserver_address + '/delete_dir', data=json_data)
+    json_data = dump_path(path)
+    url = urllib.parse.urljoin(nameserver_address, 'delete_dir')
+    r = requests.post(url, data=json_data)
     response = json.loads(r.text)
     if get_status(response) == 'success':
         print('Directory was successfully deleted')
@@ -144,7 +156,7 @@ def get_status(response):
     return response['status']
 
 
-def dump_file_path(path):
+def dump_path(path):
     data = {}
     data['path'] = path
     json_data = json.dumps(data)
