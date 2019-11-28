@@ -2,11 +2,11 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'test'
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
-DEBUG = True
+DEBUG = (os.environ['DJANGO_DEBUG'] == 'True')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ['DJANGO_ALLOWED_HOSTS'].split(',')
 
 
 # Application definition
@@ -47,7 +47,7 @@ WSGI_APPLICATION = 'naming_server.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'database/db.sqlite3'),
     }
 }
 
