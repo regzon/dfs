@@ -1,2 +1,12 @@
+## Mac OS ##
 .DS_Store
+
+## Vim ##
+*.sw[op]
+
+## Rope Project ##
 .ropeproject/
+
+## Python ##
+__pycache__/
+*.py[cod]
