@@ -32,6 +32,11 @@ def create_dir(path):
         print("Successfully created the directory %s " % path)
 
 
+class ResponseError(Exception):
+    def __init__(self, response):
+        super.__init__(response)
+
+
 class Client:
     def __init__(self, nameserver_addr):
         self.nameserver_address = nameserver_addr
@@ -47,10 +52,10 @@ class Client:
             print('Available size: ', size)
             create_dir(self.working_dir)
             return size
-        elif get_status(response_json) == 'error':
-            message = response_json['message']
-            print(message)
-        return None
+        # elif get_status(response_json) == 'error':
+        #     message = response_json['message']
+        #     print(message)
+        # return None
 
     def create_file(self, path):
         request_data = dump_path(path)
