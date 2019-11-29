@@ -13,6 +13,7 @@ ALLOWED_HOSTS = os.environ['DJANGO_ALLOWED_HOSTS'].split(',')
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
+    'naming_server',
 ]
 
 MIDDLEWARE = [
