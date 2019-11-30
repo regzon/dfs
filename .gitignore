@@ -13,3 +13,6 @@ __pycache__/
 
 ## Environment ##
 .env
+
+## Docker ##
+docker-compose.override.yml
