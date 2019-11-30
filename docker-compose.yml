@@ -10,6 +10,8 @@ services:
       DJANGO_DEBUG: $NAMING_DJANGO_DEBUG
     volumes:
       - database:/application/database
+    ports:
+      - "8080:80"
 
   storage_server:
     build: storage_server

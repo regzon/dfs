@@ -18,4 +18,4 @@ ENV DJANGO_SECRET_KEY= \
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD ["python", "manage.py", "runserver"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:80"]
