@@ -67,4 +67,19 @@ def write_file(request):
 
 
 def delete_file(request):
-    pass
+    response = HttpResponse()
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        path = body['path']
+
+        if is_exists(path):
+            # TODO: send request to Storage server to delete
+            response['status'] = 'success'
+        else:
+            response['status'] = 'error'
+            response['error'] = 'Path/File does not exists'
+    else:
+        response['status'] = 'error'
+        response['error'] = f'Not correct method type. Get {request.method}\
+            insted POST'
