@@ -18,7 +18,7 @@ def init(request):
 def create_file(request):
     response = HttpResponse()
     if request.method == 'POST':
-        # TODO: get from StorageNode
+        # TODO: get from Storage server
         upload_url = ''
         response['status'] = 'success'
         response['data']['upload_url'] = upload_url
@@ -35,7 +35,7 @@ def read_file(request):
         body = json.loads(body_unicode)
         path = body['path']
         if is_exists(path):
-            # TODO: get from StorageNode
+            # TODO: get from Storage server
             url_to_file = ''
             response['status'] = 'success'
             response['data']['download_url'] = url_to_file
@@ -50,4 +50,21 @@ def read_file(request):
 
 
 def is_exists(file_path):
+    pass
+
+
+def write_file(request):
+    response = HttpResponse()
+    if request.method == 'POST':
+        # TODO: get from Stroage server
+        url_to_upload_file = ''
+        response['status'] = 'success'
+        response['data']['upload_url'] = url_to_upload_file
+    else:
+        response['status'] = 'error'
+        response['error'] = f'Not correct method type. Get {request.method}\
+            insted POST'
+
+
+def delete_file(request):
     pass
