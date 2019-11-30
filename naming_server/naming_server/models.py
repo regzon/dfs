@@ -11,10 +11,10 @@ class Directory(models.Model):
 
 
 class Storage(models.Model):
-    id = models.UUIDField()
+    storage_id = models.UUIDField()
     files = models.ManyToManyField(
         'Storage',
-        related_name='files',
+        related_name='storages',
         through='StoredFile',
     )
     available_size = models.IntegerField()
