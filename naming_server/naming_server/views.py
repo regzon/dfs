@@ -1,35 +1,30 @@
-from django.http import HttpResponse
+from django.http import JsonResponse
 import json
 
 DEF_SIZE = 1024
 
 
 def init(request):
-    response = HttpResponse()
     if request.method == 'POST':
-        response['status'] = 'successs'
-        response['data']['size'] = DEF_SIZE
+        data = [{'status': 'success', 'data': {'size': DEF_SIZE}}]
     else:
-        response['status'] = 'error'
-        response['error'] = f'Not correct method type. Get {request.method}\
-            insted POST'
+        data = [{'status': 'error', 'error': f'Not correct method type.\
+                 Get {request.method} insted POST'}]
+    return JsonResponse(data)
 
 
 def create_file(request):
-    response = HttpResponse()
     if request.method == 'POST':
         # TODO: get from Storage server
         upload_url = ''
-        response['status'] = 'success'
-        response['data']['upload_url'] = upload_url
+        data = [{'status': 'success', 'data': {'upload_url': upload_url}}]
     else:
-        response['status'] = 'error'
-        response['error'] = f'Not correct method type. Get {request.method}\
-            insted POST'
+        data = [{'status': 'error', 'error': f'Not correct method type.\
+                 Get {request.method} insted POST'}]
+    return JsonResponse(data)
 
 
 def read_file(request):
-    response = HttpResponse()
     if request.method == 'GET':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
@@ -37,37 +32,48 @@ def read_file(request):
         if is_exists(path):
             # TODO: get from Storage server
             url_to_file = ''
-            response['status'] = 'success'
-            response['data']['download_url'] = url_to_file
+            data = [{
+                'status': 'success',
+                'data': {
+                    'download_url': url_to_file
+                }
+            }]
         else:
-            response['status'] = 'error'
-            response['error'] = 'Path/File does not exists'
+            data = [{'status': 'error', 'error': 'Path/File does not exist'}]
 
     else:
-        response['status'] = 'error'
-        response['error'] = f'Not correct method type. Get {request.method}\
-            insted GET'
+        data = [{'status': 'error',
+                 'error': f'Not correct method type. Get {request.method}\
+                 insted GET'
+                 }]
+
+    return JsonResponse(data)
 
 
 def is_exists(file_path):
-    pass
+    return True
 
 
 def write_file(request):
-    response = HttpResponse()
     if request.method == 'POST':
         # TODO: get from Stroage server
         url_to_upload_file = ''
-        response['status'] = 'success'
-        response['data']['upload_url'] = url_to_upload_file
+        data = [{
+            'status': 'success',
+            'data': {
+                'download_url': url_to_upload_file
+            }
+        }]
     else:
-        response['status'] = 'error'
-        response['error'] = f'Not correct method type. Get {request.method}\
-            insted POST'
+        data = [{'status': 'error',
+                 'error': f'Not correct method type. Get {request.method}\
+                 insted POST'
+                 }]
+
+    return JsonResponse(data)
 
 
 def delete_file(request):
-    response = HttpResponse()
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
@@ -75,11 +81,13 @@ def delete_file(request):
 
         if is_exists(path):
             # TODO: send request to Storage server to delete
-            response['status'] = 'success'
+            data = [{'status': 'success'}]
         else:
-            response['status'] = 'error'
-            response['error'] = 'Path/File does not exists'
+            data = [{'status': 'error', 'error': 'Path/File does not exist'}]
     else:
-        response['status'] = 'error'
-        response['error'] = f'Not correct method type. Get {request.method}\
-            insted POST'
+        data = [{'status': 'error',
+                 'error': f'Not correct method type. Get {request.method}\
+                 insted POST'
+                 }]
+
+    return JsonResponse(data)
