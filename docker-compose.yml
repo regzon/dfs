@@ -17,6 +17,9 @@ services:
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
+    volumes:
+      - "spools:/spools"
 
 volumes:
   database:
+  spools:
