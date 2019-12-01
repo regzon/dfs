@@ -42,7 +42,7 @@ class Storage(models.Model):
 
 class File(models.Model):
     name = models.CharField(max_length=255)
-    # size = models.IntegerField()
+    size = models.IntegerField(default=0)
     parent_dir = models.ForeignKey(
         'Directory',
         on_delete=models.CASCADE,

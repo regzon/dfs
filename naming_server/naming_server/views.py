@@ -246,24 +246,33 @@ def read_dir(request):
 
 
 def create_dir(request):
-    if request.method == 'POST':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-        # TODO: check path correctness
-        if not dir_exists(path):
-            data = {'status': 'success'}
-        else:
-            data = {
-                'status': 'error',
-                'message': f'Invalid directory path: Directory {path}'
-            }
-    else:
-        data = {'status': 'error',
-                'message': f'Not correct method type. Get {request.method}\
-                insted POST'
-                }
-
+    if request.method != 'POST':
+        data = {
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted POST'
+            )
+        }
+        return JsonResponse(data, status=400)
+    path = os.path.normpath(request.POST['path'])
+    directory = directory_from_path(path)
+    if directory is not None:
+        data = {
+            'status': 'error',
+            'message': 'Directory already exists',
+        }
+        return JsonResponse(data, status=400)
+    parent_path, directory = os.path.split(path)
+    parent_dir = directory_from_path(parent_path)
+    if parent_dir is None:
+        data = {
+            'status': 'error',
+            'message': 'Parent directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+    Directory.objects.create(name=directory, parent_dir=parent_dir)
+    data = {'status': 'success'}
     return JsonResponse(data)
 
 
