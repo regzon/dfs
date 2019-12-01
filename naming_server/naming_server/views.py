@@ -42,6 +42,15 @@ def file_from_path(path):
     return file
 
 
+def filenames_from_path(directory):
+    filenames = []
+    for file in directory.files.all():
+        filenames.append(file.name)
+    for sub_dir in directory.subdirs.all():
+        filenames.append(sub_dir.name + '/')
+    return filenames
+
+
 def init(request):
     if request.method != 'POST':
         data = {
@@ -107,7 +116,6 @@ def read_file(request):
         body = json.loads(body_unicode)
         path = body['path']
         if file_exists(path):
-            # TODO: get from Storage server
             url_to_file = ''
             data = {
                 'status': 'success',
@@ -219,29 +227,29 @@ def copy_file(request):
 
 
 def read_dir(request):
-    if request.method == 'GET':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-        filenames = get_filenames(path)
-        if dir_exists(path):
-            data = {
-                'status': 'success',
-                'data': {
-                    'filenames': filenames
-                }
-            }
-        else:
-            data = {
-                'status': 'error',
-                'message': 'Directory does not exist'
-            }
-    else:
+    if request.method != 'GET':
         data = {'status': 'error',
                 'message': f'Not correct method type. Get {request.method}\
-                 insted GET'
+                insted GET'
                 }
 
+        return JsonResponse(data, status=400)
+    path = os.path.normpath(request.GET['path'])
+    directory = directory_from_path(path)
+    if directory is not None:
+        filenames = filenames_from_path(directory)
+        data = {
+            'status': 'success',
+            'data': {
+                'filenames': filenames
+            }
+        }
+    else:
+        data = {
+            'status': 'error',
+            'message': 'Directory does not exist'
+        }
+        return JsonResponse(data, status=400)
     return JsonResponse(data)
 
 

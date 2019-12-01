@@ -11,8 +11,7 @@ def get_status(response_json):
 def dump_path(path):
     data = {}
     data['path'] = path
-    request_data = json.dumps(data)
-    return request_data
+    return data
 
 
 def check_path(working_dir, path):
@@ -43,7 +42,7 @@ class Client:
         self.working_dir = './DFS'
 
     def init(self):
-        url = urllib.parse.urljoin(self.nameserver_address, 'init/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'init')
         print(url)
         response = requests.post(url)
         response_json = json.loads(response.text)
@@ -60,7 +59,7 @@ class Client:
 
     def create_file(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'create_file/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'create_file')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'error':
@@ -71,8 +70,8 @@ class Client:
 
     def read_file(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'read_file/')
-        response = requests.get(url, data=request_data)
+        url = urllib.parse.urljoin(self.nameserver_address, 'read_file')
+        response = requests.get(url, params=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
             data = response_json['data']
@@ -86,7 +85,7 @@ class Client:
 
     def write_file(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'write_file/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'write_file')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
@@ -101,7 +100,7 @@ class Client:
 
     def delete_file(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'delete_file/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'delete_file')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'error':
@@ -112,8 +111,8 @@ class Client:
 
     def get_file_info(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'get_file_info/')
-        response = requests.get(url, data=request_data)
+        url = urllib.parse.urljoin(self.nameserver_address, 'get_file_info')
+        response = requests.get(url, params=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
             data = response_json['data']
@@ -129,9 +128,8 @@ class Client:
         data = {}
         data['source_path'] = source_path
         data['destination_path'] = destination_path
-        request_data = json.dumps(data)
-        url = urllib.parse.urljoin(self.nameserver_address, 'copy_file/')
-        response = requests.post(url, data=request_data)
+        url = urllib.parse.urljoin(self.nameserver_address, 'copy_file')
+        response = requests.post(url, data=data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
             print('File was successfully copied')
@@ -141,9 +139,9 @@ class Client:
 
     def read_dir(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'read_dir/')
-        response = requests.get(url, data=request_data)
-        response_json = json.loads(response.text)
+        url = urllib.parse.urljoin(self.nameserver_address, 'read_dir')
+        response = requests.get(url, params=request_data)
+        response_json = response.json()
         if get_status(response_json) == 'success':
             data = response_json['data']
             filenames = data['filenames']
@@ -156,7 +154,7 @@ class Client:
 
     def create_dir(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'create_dir/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'create_dir')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
@@ -167,7 +165,7 @@ class Client:
 
     def delete_dir(self, path):
         request_data = dump_path(path)
-        url = urllib.parse.urljoin(self.nameserver_address, 'delete_dir/')
+        url = urllib.parse.urljoin(self.nameserver_address, 'delete_dir')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
