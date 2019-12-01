@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  naming_server:
+  naming-server:
     build: naming_server
     image: dfs-naming-server
     environment:
@@ -11,15 +11,23 @@ services:
     volumes:
       - database:/application/database
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
 
-  storage_server:
+  storage-server:
     build: storage_server
     image: dfs-storage-server
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
-      NAMING_SERVER: "http://naming_server"
+      NAMING_SERVER: "http://naming-server"
+
+  storage-server2:
+    build: storage_server
+    image: dfs-storage-server
+    environment:
+      UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
+      UWSGI_THREADS: $STORAGE_UWSGI_THREADS
+      NAMING_SERVER: "http://naming-server"
 
 volumes:
   database:

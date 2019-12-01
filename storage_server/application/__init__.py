@@ -2,10 +2,14 @@ import os
 import logging
 import logging.config
 
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 
-from .utils import create_empty_file
 from .tasks import update_file_status
+from .utils import (
+    create_empty_file,
+    empty_the_directory,
+    get_available_size,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,17 +27,26 @@ def create_app():
         path = os.path.normpath(path)
         return os.path.join(app.config['UPLOAD_FOLDER'], path[1:])
 
-    @app.route('/initialize_file', methods=['POST'])
+    @app.route('/initialize_root', methods=['POST'])
+    def initialize_root():
+        logger.info("Received a root initialization request")
+        empty_the_directory(app.config['UPLOAD_FOLDER'])
+        available_size = get_available_size()
+        data = {'size': available_size}
+        logger.info("Finished a root initialization successfully")
+        return jsonify(data)
+
+    @app.route('/create_file', methods=['POST'])
     def initialize_file():
-        logger.info("Received a file initialization request")
+        logger.info("Received a file creation request")
         if 'path' not in request.form or not request.form['path']:
             logger.warning("Request to file initialization without path")
             return "Parameter path is required", 400
         path = request.form['path']
         local_path = get_local_path(path)
         create_empty_file(local_path)
-        logger.info("Finished a file initialization successfully")
-        return "Success"
+        logger.info("Finished a file creation successfully")
+        return jsonify({})
 
     @app.route('/upload_file', methods=['POST'])
     def upload_file():
@@ -53,7 +66,7 @@ def create_app():
         # Send notification to the naming server
         update_file_status.spool(path, status='ready')
         logger.info("Finished a file upload successfully")
-        return "Success"
+        return jsonify({})
 
     @app.route('/download_file', methods=['GET'])
     def download_file():
@@ -78,6 +91,6 @@ def create_app():
         logger.info(f"Deleting file {path}")
         os.remove(local_path)
         logger.info("Finished deleting a file successfully")
-        return "Success"
+        return jsonify({})
 
     return app

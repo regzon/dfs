@@ -6,6 +6,8 @@ import urllib.parse
 import uwsgi
 from uwsgidecorators import timer, spool
 
+from .utils import get_available_size
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +42,7 @@ def send_to_naming_server(url, data):
 def send_heartbeat(signum):
     logger.info(f"Sending a heartbeat")
     url = 'storage/heartbeat'
-    data = {}
+    data = {'size': get_available_size()}
     result = send_to_naming_server(url, data)
     if not result:
         logger.error("Failed sending heartbeat")

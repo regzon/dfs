@@ -53,6 +53,38 @@ DATABASES = {
 }
 
 
+# Logging
+# https://docs.djangoproject.com/en/2.2/topics/logging/
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+    },
+    'loggers': {
+        'naming_server': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+    },
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 

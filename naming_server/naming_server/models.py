@@ -1,5 +1,7 @@
 from django.db import models
 
+from .utils import send_request
+
 
 class Directory(models.Model):
     name = models.CharField(max_length=255)
@@ -7,11 +9,12 @@ class Directory(models.Model):
         'Directory',
         on_delete=models.CASCADE,
         related_name='subdirs',
+        null=True,
     )
 
 
 class Storage(models.Model):
-    storage_id = models.UUIDField()
+    ip_address = models.GenericIPAddressField()
     files = models.ManyToManyField(
         'Storage',
         related_name='storages',
@@ -20,10 +23,26 @@ class Storage(models.Model):
     available_size = models.IntegerField()
     last_heartbeat = models.DateTimeField()
 
+    def initialize(self):
+        response = send_request(
+            self.ip_address,
+            uri='/initialize_root',
+            method='post',
+        )
+        return response['size']
+
+    def create_file(self, path):
+        send_request(
+            self.ip_address,
+            uri='/create_file',
+            method='post',
+            data={'path': path},
+        )
+
 
 class File(models.Model):
     name = models.CharField(max_length=255)
-    size = models.IntegerField()
+    # size = models.IntegerField()
     parent_dir = models.ForeignKey(
         'Directory',
         on_delete=models.CASCADE,

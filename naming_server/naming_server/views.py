@@ -1,42 +1,103 @@
-from django.http import JsonResponse
+import os
 import json
+import logging
 
-DEF_SIZE = 1024
+from ipware import get_client_ip
+from django.http import JsonResponse
+from django.utils import timezone
+
+from .models import File, Directory, Storage, StoredFile
+
+logger = logging.getLogger(__name__)
+
+
+def directory_from_path(path):
+    path = os.path.normpath(path)
+    if path[0] == '/':
+        path = path[1:]
+    parent_dir = Directory.objects.get(parent_dir=None)
+    if not path:
+        return parent_dir
+    directories = path.split('/')
+    for directory in directories:
+        try:
+            parent_dir = parent_dir.subdirs.get(name=directory)
+        except Directory.DoesNotExist:
+            return None
+    return parent_dir
+
+
+def file_from_path(path):
+    path = os.path.normpath(path)
+    if path[0] == '/':
+        path = path[1:]
+    directories, filename = os.path.split(path)
+    directory = directory_from_path(directories)
+    if directory is None:
+        return None
+    try:
+        file = directory.files.get(name=filename)
+    except File.DoesNotExist:
+        return None
+    return file
 
 
 def init(request):
-    if request.method == 'POST':
-        data = {
-            'status': 'success',
-            'data': {
-                'size': DEF_SIZE
-            }
-        }
-    else:
+    if request.method != 'POST':
         data = {
             'status': 'error',
-            'message': f'Not correct method type.\
-                 Get {request.method} insted POST'
+            'message': (
+                f'Not correct method type.'
+                f'Get {request.method} insted POST'
+            )
         }
+        return JsonResponse(data, status=400)
+    # Delete existing files
+    File.objects.all().delete()
+    Directory.objects.all().delete()
+    # Initialize storage servers
+    total_size = 0
+    for storage in Storage.objects.all():
+        total_size += storage.initialize()
+    # Create root directory
+    Directory.objects.create(name='root', parent_dir=None)
+    data = {
+        'status': 'success',
+        'data': {'size': total_size}
+    }
     return JsonResponse(data)
 
 
 def create_file(request):
-    if request.method == 'POST':
-        # TODO: get from Storage server
-        upload_url = ''
-        data = {
-            'status': 'success',
-            'data': {
-                'upload_url': upload_url
-            }
-        }
-    else:
+    if request.method != 'POST':
         data = {
             'status': 'error',
-            'message': f'Not correct method type.\
-            Get {request.method} insted POST'
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted POST'
+            )
         }
+        return JsonResponse(data, status=400)
+    path = request.POST['path']
+    if file_from_path(path) is not None:
+        data = {
+            'status': 'error',
+            'message': 'File already exists',
+        }
+        return JsonResponse(data, status=400)
+    directory_path, filename = os.path.split(path)
+    directory = directory_from_path(directory_path)
+    if directory is None:
+        data = {
+            'status': 'error',
+            'message': 'Parent directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+    file = File.objects.create(name=filename, parent_dir=directory)
+    for storage in Storage.objects.all():
+        storage.create_file(path)
+        StoredFile.objects.create(storage=storage, file=file)
+    data = {'status': 'success'}
     return JsonResponse(data)
 
 
@@ -226,6 +287,29 @@ def delete_dir(request):
                 insted POST'
                 }
     return JsonResponse(data)
+
+
+def storage_heartbeat(request):
+    logger.info("Received a storage heartbeat request")
+    storage_ip, _ = get_client_ip(request)
+    storage_obj = Storage.objects.filter(ip_address=storage_ip)
+    if not storage_obj.exists():
+        logger.info(
+            "Creating a storage object with"
+            f" ip address {storage_ip} and size {request.POST['size']}"
+        )
+        Storage.objects.create(
+            ip_address=storage_ip,
+            available_size=request.POST['size'],
+            last_heartbeat=timezone.now(),
+        )
+    else:
+        storage_obj.update(
+            available_size=request.POST['size'],
+            last_heartbeat=timezone.now(),
+        )
+    logger.info("Finished a storage heartbeat successfully")
+    return JsonResponse({})
 
 
 def file_exists(file_path):
