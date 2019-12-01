@@ -5,11 +5,18 @@ services:
     build: naming_server
     image: dfs-naming-server
     environment:
-      DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
-      DJANGO_ALLOWED_HOSTS: $DJANGO_ALLOWED_HOSTS
-      DJANGO_DEBUG: $DJANGO_DEBUG
+      DJANGO_SECRET_KEY: $NAMING_DJANGO_SECRET_KEY
+      DJANGO_ALLOWED_HOSTS: $NAMING_DJANGO_ALLOWED_HOSTS
+      DJANGO_DEBUG: $NAMING_DJANGO_DEBUG
     volumes:
       - database:/application/database
+
+  storage_server:
+    build: storage_server
+    image: dfs-storage-server
+    environment:
+      UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
+      UWSGI_THREADS: $STORAGE_UWSGI_THREADS
 
 volumes:
   database:
