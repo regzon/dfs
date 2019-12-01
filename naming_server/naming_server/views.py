@@ -111,6 +111,7 @@ def create_file(request):
 
 
 def read_file(request):
+
     if request.method == 'GET':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
@@ -155,24 +156,34 @@ def write_file(request):
 
 
 def delete_file(request):
-    if request.method == 'POST':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-
-        if file_exists(path):
-            # TODO: send request to Storage server to delete
-            data = {'status': 'success'}
-        else:
-            data = {'status': 'error',
-                    'message': 'Path/File does not exist'
-                    }
-    else:
+    if request.method != 'POST':
         data = {'status': 'error',
                 'message': f'Not correct method type. Get {request.method}\
                  insted POST'
                 }
+        return JsonResponse(data, status=400)
 
+    path = request.POST['path']
+    directory_path, filename = os.path.split(path)
+    directory = directory_from_path(directory_path)
+    if directory is None:
+        data = {
+            'status': 'error',
+            'message': 'Parent directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+    file = File.objects.create(name=filename, parent_dir=directory)
+    if file is not None:
+        for storage in Storage.objects.all():
+            # TODO Сделать на storage
+            storage.delete_file(path)
+            StoredFile.objects.delete(storage=storage, file=file)
+        data = {'status': 'success'}
+    else:
+        data = {'status': 'error',
+                'message': 'Path/File does not exist'
+                }
+        return JsonResponse(data, status=400)
     return JsonResponse(data)
 
 
@@ -286,23 +297,23 @@ def create_dir(request):
 
 # TODO Ask for confirm deletion
 def delete_dir(request):
-    if request.method == 'POST':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-
-        if dir_exists(path):
-            data = {'status': 'success'}
-        else:
-            data = {
-                'status': 'error',
-                'message': 'Directory does not exist'
-            }
-    else:
+    if request.method != 'POST':
         data = {'status': 'error',
                 'message': f'Not correct method type. Get {request.method}\
                 insted POST'
                 }
+        return JsonResponse(data, status=400)
+    path = os.path.normpath(request.POST['path'])
+    directory = directory_from_path(path)
+    if directory is not None:
+        directory.delete()
+        data = {'status': 'success'}
+    else:
+        data = {
+            'status': 'error',
+            'message': 'Directory does not exist'
+        }
+        return JsonResponse(data, status=400)
     return JsonResponse(data)
 
 

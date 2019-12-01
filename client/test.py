@@ -7,4 +7,6 @@ if __name__ == '__main__':
     response = client.create_file('/kek/main.txt')
     response = client.create_dir('/kek/cheburek')
     response = client.read_dir('/kek/')
+    response = client.delete_dir('/kek/')
+    response = client.read_dir('/kek/')
     print(response)
