@@ -39,6 +39,22 @@ class Storage(models.Model):
             data={'path': path},
         )
 
+    def delete_file(self, path):
+        send_request(
+            self.ip_address,
+            uri='/delete_file',
+            method='post',
+            data={'path': path},
+        )
+
+    def delete_dir(self, path):
+        send_request(
+            self.ip_address,
+            uri='/delete_dir',
+            method='post',
+            data={'path': path},
+        )
+
 
 class File(models.Model):
     name = models.CharField(max_length=255)

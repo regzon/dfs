@@ -1,4 +1,5 @@
 import os
+import shutil
 import logging
 import logging.config
 
@@ -88,9 +89,28 @@ def create_app():
             return "Parameter path is required", 400
         path = request.form['path']
         local_path = get_local_path(path)
+        if not os.path.exists(local_path):
+            logger.warning("Deletion of the file that doesn't exist")
+            return "File doesn't exist", 400
         logger.info(f"Deleting file {path}")
         os.remove(local_path)
         logger.info("Finished deleting a file successfully")
+        return jsonify({})
+
+    @app.route('/delete_dir', methods=['POST'])
+    def delete_dir():
+        logger.info("Received a directory deletion request")
+        if 'path' not in request.form or not request.form['path']:
+            logger.warning("Request to directory deletion without path")
+            return "Parameter path is required", 400
+        path = request.form['path']
+        local_path = get_local_path(path)
+        if not os.path.exists(local_path):
+            logger.warning("Deletion of the directory that doesn't exist")
+            return "File doesn't exist", 400
+        logger.info(f"Deleting directory {path}")
+        shutil.rmtree(local_path)
+        logger.info("Finished deleting a directory successfully")
         return jsonify({})
 
     return app

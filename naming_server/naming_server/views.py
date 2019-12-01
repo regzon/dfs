@@ -164,26 +164,17 @@ def delete_file(request):
         return JsonResponse(data, status=400)
 
     path = request.POST['path']
-    directory_path, filename = os.path.split(path)
-    directory = directory_from_path(directory_path)
-    if directory is None:
+    file = file_from_path(path)
+    if file is None:
         data = {
             'status': 'error',
-            'message': 'Parent directory does not exist',
+            'message': 'File does not exist'
         }
         return JsonResponse(data, status=400)
-    file = File.objects.create(name=filename, parent_dir=directory)
-    if file is not None:
-        for storage in Storage.objects.all():
-            # TODO Сделать на storage
-            storage.delete_file(path)
-            StoredFile.objects.delete(storage=storage, file=file)
-        data = {'status': 'success'}
-    else:
-        data = {'status': 'error',
-                'message': 'Path/File does not exist'
-                }
-        return JsonResponse(data, status=400)
+    for storage in Storage.objects.all():
+        storage.delete_file(path)
+        StoredFile.objects.filter(storage=storage, file=file).delete()
+    data = {'status': 'success'}
     return JsonResponse(data)
 
 
@@ -295,25 +286,28 @@ def create_dir(request):
     return JsonResponse(data)
 
 
-# TODO Ask for confirm deletion
 def delete_dir(request):
     if request.method != 'POST':
-        data = {'status': 'error',
-                'message': f'Not correct method type. Get {request.method}\
-                insted POST'
-                }
+        data = {
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f'Get {request.method} insted POST'
+            )
+        }
         return JsonResponse(data, status=400)
     path = os.path.normpath(request.POST['path'])
     directory = directory_from_path(path)
-    if directory is not None:
-        directory.delete()
-        data = {'status': 'success'}
-    else:
+    if directory is None:
         data = {
             'status': 'error',
             'message': 'Directory does not exist'
         }
         return JsonResponse(data, status=400)
+    directory.delete()
+    for storage in Storage.objects.all():
+        storage.delete_dir(path)
+    data = {'status': 'success'}
     return JsonResponse(data)
 
 
