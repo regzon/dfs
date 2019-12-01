@@ -5,6 +5,7 @@ import logging.config
 from flask import Flask, request, send_file
 
 from .utils import create_empty_file
+from .tasks import update_file_status
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def create_app():
         local_path = get_local_path(path)
         create_empty_file(local_path)
         logger.info("Finished a file initialization successfully")
-        return ""
+        return "Success"
 
     @app.route('/upload_file', methods=['POST'])
     def upload_file():
@@ -49,8 +50,10 @@ def create_app():
         path = request.form['path']
         local_path = get_local_path(path)
         file.save(local_path)
+        # Send notification to the naming server
+        update_file_status.spool(path, status='ready')
         logger.info("Finished a file upload successfully")
-        return ""
+        return "Success"
 
     @app.route('/download_file', methods=['GET'])
     def download_file():
@@ -75,6 +78,6 @@ def create_app():
         logger.info(f"Deleting file {path}")
         os.remove(local_path)
         logger.info("Finished deleting a file successfully")
-        return ""
+        return "Success"
 
     return app

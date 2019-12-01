@@ -15,6 +15,7 @@ if [ "$1" = 'uwsgi' ]; then
     --master \
     --module=application.wsgi \
     --spooler=/spools \
+    --spooler-frequency=10 \
     --import=application.tasks \
     --processes=$UWSGI_PROCESSES \
     --threads=$UWSGI_THREADS \

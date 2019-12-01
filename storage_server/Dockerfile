@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV UWSGI_PROCESSES=1 \
-    UWSGI_THREADS=2
+    UWSGI_THREADS=2 \
+    NAMING_SERVER=
 
 VOLUME ["/spools", "/data", "/var/application"]
 
