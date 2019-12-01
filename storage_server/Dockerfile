@@ -15,7 +15,7 @@ COPY . .
 ENV UWSGI_PROCESSES=1 \
     UWSGI_THREADS=2
 
-VOLUME ["/spools"]
+VOLUME ["/spools", "/data", "/var/application"]
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
