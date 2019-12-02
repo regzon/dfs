@@ -1,8 +1,7 @@
-import re
-import requests
+import os
 import json
 import urllib
-import os
+import requests
 
 
 def get_status(response_json):
@@ -78,9 +77,7 @@ class Client:
             data = response_json['data']
             url = data['download_url']
             response = requests.get(url, params=request_data)
-            print(response.headers)
-            cd = response.headers.get('content-disposition')
-            filename = re.findall('filename=(.+)', cd)[0]
+            filename = os.path.basename(path)
             with open('DFS/' + filename, 'wb') as f:
                 f.write(response.content)
             print('Download link: ', url)

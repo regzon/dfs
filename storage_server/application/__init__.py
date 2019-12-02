@@ -2,6 +2,7 @@ import os
 import shutil
 import logging
 import logging.config
+import requests
 
 from flask import Flask, request, send_file, jsonify
 
@@ -63,6 +64,8 @@ def create_app():
             return "Parameter path is required", 400
         path = request.form['path']
         local_path = get_local_path(path)
+        directories, _ = os.path.split(local_path)
+        os.makedirs(directories, exist_ok=True)
         file.save(local_path)
         # Send notification to the naming server
         update_file_status.spool(path, status='ready')
@@ -115,6 +118,27 @@ def create_app():
         logger.info(f"Deleting directory {path}")
         shutil.rmtree(local_path)
         logger.info("Finished deleting a directory successfully")
+        return jsonify({})
+
+    @app.route('/transfer', methods=['POST'])
+    def transfer():
+        logger.info("Received a transfer request")
+        if 'path' not in request.form or not request.form['path']:
+            logger.warning("Request to transfer without path")
+            return "Parameter path is required", 400
+        path = request.form['path']
+
+        if 'download_url' not in request.form:
+            logger.warning("Request to transfer without download url")
+            return "Parameter download_url is required", 400
+        download_url = request.form['download_url']
+
+        request_data = {'path': path}
+        response = requests.get(download_url, params=request_data)
+        local_path = get_local_path(path)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+        update_file_status.spool(path, status='ready')
         return jsonify({})
 
     return app

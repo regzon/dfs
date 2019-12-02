@@ -105,7 +105,11 @@ def create_file(request):
     file = File.objects.create(name=filename, parent_dir=directory)
     for storage in Storage.objects.all():
         storage.create_file(path)
-        StoredFile.objects.create(storage=storage, file=file)
+        StoredFile.objects.create(
+            status=StoredFile.READY,
+            storage=storage,
+            file=file,
+        )
     data = {'status': 'success'}
     return JsonResponse(data)
 
@@ -147,8 +151,39 @@ def write_file(request):
         }
         return JsonResponse(data, status=400)
 
-    storage = Storage.objects.all()[0]
-    upload_url = 'http://' + storage.ip_address + ':5000/upload_file'
+    path = request.POST['path']
+    directory_path, filename = os.path.split(path)
+    directory = directory_from_path(directory_path)
+    if directory is None:
+        data = {
+            'status': 'error',
+            'message': 'Parent directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+
+    file, created = File.objects.get_or_create(
+        name=filename,
+        parent_dir=directory,
+    )
+    first_ip = None
+    for storage in Storage.objects.all():
+        stored_file, created = StoredFile.objects.get_or_create(
+            storage=storage,
+            file=file,
+        )
+        if first_ip is None:
+            first_ip = storage.ip_address
+            stored_file.status = StoredFile.UPLOADING
+        else:
+            stored_file.status = StoredFile.WAITING
+        stored_file.save()
+    if first_ip is None:
+        data = {
+            'status': 'error',
+            'message': "No storage servers available",
+        }
+        return JsonResponse(data, status=500)
+    upload_url = 'http://' + first_ip + ':5000/upload_file'
     data = {
         'status': 'success',
         'data': {'upload_url': upload_url}
@@ -332,6 +367,28 @@ def storage_heartbeat(request):
             last_heartbeat=timezone.now(),
         )
     logger.info("Finished a storage heartbeat successfully")
+    return JsonResponse({})
+
+
+def storage_update_status(request):
+    logger.info("Received a storage status update request")
+    path = request.POST['path']
+    file = file_from_path(path)
+    storage_ip, _ = get_client_ip(request)
+    storage = Storage.objects.get(ip_address=storage_ip)
+    StoredFile.objects.filter(storage=storage, file=file) \
+        .update(status=StoredFile.READY)
+    waiting = file.stored_files.filter(status=StoredFile.WAITING)
+    if waiting.count() == 0:
+        logger.info("Zero storages are waiting for file transfer")
+        return JsonResponse({})
+    download_url = 'http://' + storage.ip_address + ':5000/download_file'
+    logger.info(f"Transfer download url: {download_url}")
+    dst_stored_file = waiting[0]
+    dst_storage = dst_stored_file.storage
+    dst_stored_file.status = StoredFile.UPLOADING
+    dst_stored_file.save()
+    dst_storage.transfer(path, download_url)
     return JsonResponse({})
 
 

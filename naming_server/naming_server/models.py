@@ -55,6 +55,14 @@ class Storage(models.Model):
             data={'path': path},
         )
 
+    def transfer(self, path, download_url):
+        send_request(
+            self.ip_address,
+            uri='/transfer',
+            method='post',
+            data={'path': path, 'download_url': download_url},
+        )
+
 
 class File(models.Model):
     name = models.CharField(max_length=255)
@@ -67,12 +75,14 @@ class File(models.Model):
 
 
 class StoredFile(models.Model):
+    WAITING = 'WTN'
     UPLOADING = 'UPL'
     READY = 'RDY'
     DELETING = 'DEL'
     MOVING = 'MOV'
 
     STATUSES = [
+        (WAITING, 'Waiting'),
         (UPLOADING, 'Uploading'),
         (READY, 'Ready'),
         (DELETING, 'Deleting'),
@@ -85,5 +95,13 @@ class StoredFile(models.Model):
         null=True,
     )
 
-    file = models.ForeignKey('File', on_delete=models.CASCADE)
-    storage = models.ForeignKey('Storage', on_delete=models.CASCADE)
+    file = models.ForeignKey(
+        'File',
+        on_delete=models.CASCADE,
+        related_name='stored_files',
+    )
+    storage = models.ForeignKey(
+        'Storage',
+        on_delete=models.CASCADE,
+        related_name='stored_files',
+    )

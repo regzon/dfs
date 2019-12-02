@@ -12,5 +12,9 @@ urlpatterns = [
     path('read_dir', views.read_dir, name='read_dir'),
     path('create_dir', views.create_dir, name='create_dir'),
     path('delete_dir', views.delete_dir, name='delete_dir'),
-    path('storage/heartbeat', views.storage_heartbeat, name='heartbeat'),
+
+    path('storage/heartbeat',
+         views.storage_heartbeat, name='heartbeat'),
+    path('storage/update_status',
+         views.storage_update_status, name='update_status'),
 ]
