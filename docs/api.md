@@ -437,3 +437,7 @@
 * ### `POST /move_file`
 
     Move existing file from one directory to another. <br>
+    
+* ### `POST /transfer`
+
+    Transfer existing files from one storage server to another. <br>
