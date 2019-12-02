@@ -21,7 +21,9 @@ services:
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
-      NAMING_SERVER: "http://naming-server:8000"
+      NAMING_SERVER: "http://naming-server"
+    ports:
+      - "127.0.0.1:5000:5000"
 
   storage-server-2:
     build: storage_server
@@ -29,7 +31,9 @@ services:
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
-      NAMING_SERVER: "http://naming-server:8000"
+      NAMING_SERVER: "http://naming-server"
+    ports:
+      - "127.0.0.1:5000:5000"
 
 volumes:
   database:
