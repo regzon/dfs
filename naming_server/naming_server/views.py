@@ -130,7 +130,13 @@ def read_file(request):
     if file is None:
         data = {'status': 'error', 'message': 'File does not exist'}
         return JsonResponse(data, status=400)
-
+    stored_file = StoredFile.objects.filter(file=file)
+    if stored_file.state != StoredFile.READY:
+        data = {
+            'status': 'error',
+            'message': 'File not in READY state'
+        }
+        return JsonResponse(data, status=400)
     storage = file.storages.all()[0]
     download_url = 'http://' + storage.ip_address + ':5000/download_file'
     data = {
@@ -207,6 +213,14 @@ def delete_file(request):
             'message': 'File does not exist'
         }
         return JsonResponse(data, status=400)
+    stored_file = StoredFile.objects.filter(file=file)
+    if stored_file.status != StoredFile.READY:
+        data = {
+            'status': 'error',
+            'message': 'File not in READY state'
+        }
+        return JsonResponse(data, status=400)
+    # stored_file.status = StoredFile.DELETING
     for storage in Storage.objects.all():
         storage.delete_file(path)
         StoredFile.objects.filter(storage=storage, file=file).delete()
@@ -215,52 +229,68 @@ def delete_file(request):
 
 
 def get_file_info(request):
-    if request.method == 'GET':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-
-        if file_exists(path):
-            size = get_file_size(path)
-            # TODO: send request to Storage server to delete
-            data = {
-                'status': 'success',
-                'data': {
-                    'size': size,
-                }
-            }
-        else:
-            data = {
-                'status': 'error',
-                'message': 'File does not exist'
-            }
-    else:
+    if request.method != 'GET':
         data = {'status': 'error',
                 'message': f'Not correct method type. Get {request.method}\
                  insted GET'
                 }
+        return JsonResponse(data, status=400)
+    path = request.POST['path']
+    file = file_from_path(path)
+    if file is None:
+        data = {
+            'status': 'error',
+            'message': 'File does not exist'
+        }
+        return JsonResponse(data, status=400)
+    size = file.size
+    data = {
+        'status': 'success',
+        'data': {
+            'size': size,
+        }
+    }
     return JsonResponse(data)
 
 
 def copy_file(request):
-    if request.method == 'POST':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        source = body['source_path']
-        dest = body['destination_path']
-
-        if dir_exists(source) and dir_exists(dest):
-            data = {'status': 'success'}
-        else:
-            data = {
-                'status': 'error',
-                'message': 'Directory does not exist'
-            }
-    else:
+    if request.method != 'POST':
         data = {'status': 'error',
                 'message': f'Not correct method type. Get {request.method}\
                  insted POST'
                 }
+        return JsonResponse(data, status=400)
+    source_path = request.POST['source_path']
+    dest_path = request.POST['destination_path']
+
+    source_file = file_from_path(source_path)
+    dest_dir = directory_from_path(dest_path)
+
+    if source_file is None:
+        data = {
+            'status': 'error',
+            'message': 'Source file does not exist'
+        }
+        return JsonResponse(data, status=400)
+    if dest_dir is None:
+        data = {
+            'status': 'error',
+            'message': f'Invalid destination path: Directory {dest_dir}'
+            f'does not exist'
+        }
+        return JsonResponse(data, status=400)
+    directory_path, filename = os.path.split(source_file)
+    directory = directory_from_path(directory_path)
+    if directory is None:
+        data = {
+            'status': 'error',
+            'message': 'Parent directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+    source_file = File.objects.create(name=filename, parent_dir=directory)
+    stored_file = StoredFile.objects.create(file=source_file)
+    stored_file.status = StoredFile.READY
+    # TODO: add function to copy file
     return JsonResponse(data)
 
 

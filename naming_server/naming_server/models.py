@@ -63,6 +63,14 @@ class Storage(models.Model):
             data={'path': path, 'download_url': download_url},
         )
 
+    def copy_file(self, path):
+        send_request(
+            self.ip_address,
+            uri='/copy_file',
+            method='post',
+            data={'path': path},
+        )
+
 
 class File(models.Model):
     name = models.CharField(max_length=255)
