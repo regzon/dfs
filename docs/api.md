@@ -263,36 +263,36 @@
 
     #### Data
 
-        ```
-        {
-          "source_path": <source_file_path>, 
-          "destination_path": <destination_file_path>
-        }
-        ```
+    ```
+    {
+      "source_path": <source_file_path>, 
+      "destination_path": <destination_file_path>
+    }
+    ```
 
-     #### Return
+    #### Return
 
-     *On success:*
+    *On success:*
 
-       ```
-        {
-          "status": "success"
-        }
-       ```
+     ```
+     {
+       "status": "success"
+     }
+     ```
 
-     *On error:*
+    *On error:*
 
-       ```
-       {
-         "status": "error",
-         "message": <error_message>
-       }
-       ```
+    ```
+    {
+     "status": "error",
+     "message": <error_message>
+    }
+    ```
 
-     #### Error Messages
+    #### Error Messages
 
-     *When source file doesn't exist:* `Source file does not exist`
-     *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
+    *When source file doesn't exist:* `Source file does not exist`
+    *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
 
 
     
