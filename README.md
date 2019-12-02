@@ -29,6 +29,8 @@ Original Docker image: `regzon/dfs-naming-server`
 
 Port: 6500
 
+### [Endpoints](docs/api.md)
+
 ## Running
 
 ### Environment
