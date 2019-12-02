@@ -1,3 +1,4 @@
+import re
 import requests
 import json
 import urllib
@@ -76,6 +77,12 @@ class Client:
         if get_status(response_json) == 'success':
             data = response_json['data']
             url = data['download_url']
+            response = requests.get(url, params=request_data)
+            print(response.headers)
+            cd = response.headers.get('content-disposition')
+            filename = re.findall('filename=(.+)', cd)[0]
+            with open('DFS/' + filename, 'wb') as f:
+                f.write(response.content)
             print('Download link: ', url)
             return url
         elif get_status(response_json) == 'error':
@@ -83,7 +90,7 @@ class Client:
             print(message)
         return None
 
-    def write_file(self, path):
+    def write_file(self, path, file):
         request_data = dump_path(path)
         url = urllib.parse.urljoin(self.nameserver_address, 'write_file')
         response = requests.post(url, data=request_data)
@@ -92,6 +99,7 @@ class Client:
             data = response_json['data']
             url = data['upload_url']
             print('Upload link: ', url)
+            requests.post(url, data=request_data, files={'file': file})
             return url
         elif get_status(response_json) == 'error':
             message = response_json['message']

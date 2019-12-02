@@ -79,7 +79,11 @@ def create_app():
         filename = os.path.basename(path)
         local_path = get_local_path(path)
         logger.info("Sending a file to the client")
-        return send_file(local_path, attachment_filename=filename)
+        return send_file(
+            local_path,
+            as_attachment=True,
+            attachment_filename=filename,
+        )
 
     @app.route('/delete_file', methods=['POST'])
     def delete_file():

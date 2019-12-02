@@ -16,7 +16,7 @@ class Directory(models.Model):
 class Storage(models.Model):
     ip_address = models.GenericIPAddressField()
     files = models.ManyToManyField(
-        'Storage',
+        'File',
         related_name='storages',
         through='StoredFile',
     )

@@ -111,47 +111,48 @@ def create_file(request):
 
 
 def read_file(request):
+    if request.method != 'GET':
+        data = {
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted GET'
+            )
+        }
+        return JsonResponse(data, status=400)
 
-    if request.method == 'GET':
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        path = body['path']
-        if file_exists(path):
-            url_to_file = ''
-            data = {
-                'status': 'success',
-                'data': {
-                    'download_url': url_to_file
-                }
-            }
-        else:
-            data = {'status': 'error', 'message': 'Path/File does not exist'}
+    path = request.GET['path']
+    file = file_from_path(path)
+    if file is None:
+        data = {'status': 'error', 'message': 'File does not exist'}
+        return JsonResponse(data, status=400)
 
-    else:
-        data = {'status': 'error',
-                'message': f'Not correct method type. Get {request.method}\
-                 insted GET'
-                }
-
+    storage = file.storages.all()[0]
+    download_url = 'http://' + storage.ip_address + ':5000/download_file'
+    data = {
+        'status': 'success',
+        'data': {'download_url': download_url},
+    }
     return JsonResponse(data)
 
 
 def write_file(request):
-    if request.method == 'POST':
-        # TODO: get from Stroage server
-        url_to_upload_file = ''
+    if request.method != 'POST':
         data = {
-            'status': 'success',
-            'data': {
-                'upload_url': url_to_upload_file
-            }
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted POST'
+            )
         }
-    else:
-        data = {'status': 'error',
-                'message': f'Not correct method type. Get {request.method}\
-                 insted POST'
-                }
+        return JsonResponse(data, status=400)
 
+    storage = Storage.objects.all()[0]
+    upload_url = 'http://' + storage.ip_address + ':5000/upload_file'
+    data = {
+        'status': 'success',
+        'data': {'upload_url': upload_url}
+    }
     return JsonResponse(data)
 
 
