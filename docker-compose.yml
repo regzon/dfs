@@ -15,7 +15,7 @@ services:
 
   storage-server-1:
     build: storage_server
-    image: regzon/dfs-naming-server
+    image: regzon/dfs-storage-server
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
@@ -23,7 +23,7 @@ services:
 
   storage-server-2:
     build: storage_server
-    image: regzon/dfs-naming-server
+    image: regzon/dfs-storage-server
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
