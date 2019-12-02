@@ -259,41 +259,41 @@
     
 * ### `POST /move_file`
 
-Move file from one directory to another
+    Move file from one directory to another
 
-#### Data
-    
-    ```
-    {
-      "source_path": <source_file_path>, 
-      "destination_path": <destination_file_path>
-    }
-    ```
-    
-   #### Return
-    
-   *On success:*
-   
-   ```
-    {
-      "status": "success"
-    }
-   ```
-    
-   *On error:*
-   
-   ```
-   {
-     "status": "error",
-     "message": <error_message>
-   }
-   ```
-    
-   #### Error Messages
-    
-   *When source file doesn't exist:* `Source file does not exist`
-   *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
-    
+    #### Data
+
+        ```
+        {
+          "source_path": <source_file_path>, 
+          "destination_path": <destination_file_path>
+        }
+        ```
+
+     #### Return
+
+     *On success:*
+
+       ```
+        {
+          "status": "success"
+        }
+       ```
+
+     *On error:*
+
+       ```
+       {
+         "status": "error",
+         "message": <error_message>
+       }
+       ```
+
+     #### Error Messages
+
+     *When source file doesn't exist:* `Source file does not exist`
+     *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
+
 
     
 ### Directories
@@ -408,32 +408,32 @@ Move file from one directory to another
 
 * ### `POST /initialize_root`
 
-    Initialize storage
+    Initialize storage server. <br>
 
 * ### `POST /create_file`
 
-    Create new file in storage
+    Create a new empty file. <br>
 
 * ### `POST /upload_file`
 
-    Upload client's file to storage
+    Upload file to storage server. <br>
 
 * ### `GET /download_file`
 
-    Download file by client
+    Download existing file by client. <br>
 
 * ### `POST /delete_dir`
 
-    Delete directory from storage
+    Removes existing directory on a storage server. <br>
 
 * ### `POST /delete_file`
 
-    Delete file from storage
+    Delete existing file from storage server. <br>
 
 * ### `POST /copy_file`
 
-    Copy file in storage
+    Copy file to another path on storage server. <br>
 
 * ### `POST /move_file`
 
-    Move file from one directory to another
+    Move existing file from one directory to another. <br>
