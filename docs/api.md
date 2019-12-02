@@ -255,6 +255,43 @@
     *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
     
     
+* ### `POST /move_file`
+
+Move file from one directory to another
+
+#### Data
+    
+    ```
+    {
+      "source_path": <source_file_path>, 
+      "destination_path": <destination_file_path>
+    }
+    ```
+    
+    #### Return
+    
+    *On success:*
+    ```
+    {
+      "status": "success"
+    }
+    ```
+    
+    *On error:*
+    ```
+    {
+      "status": "error",
+      "message": <error_message>
+    }
+    ```
+    
+    #### Error Messages
+    
+    *When source file doesn't exist:* `Source file does not exist`
+    *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
+    
+
+    
 ### Directories
     
 * ### `GET /read_dir`
@@ -366,25 +403,33 @@
 
 
 * ### `POST /initialize_root`
-Initialize storage
+
+    Initialize storage
 
 * ### `POST /create_file`
-Create new file in storage
+
+    Create new file in storage
 
 * ### `POST /upload_file`
-Upload client's file to storage
+
+    Upload client's file to storage
 
 * ### `GET /download_file`
-Download file by client
+
+    Download file by client
 
 * ### `POST /delete_dir`
-Delete directory from storage
+
+    Delete directory from storage
 
 * ### `POST /delete_file`
-Delete file from storage
+
+    Delete file from storage
 
 * ### `POST /copy_file`
-Copy file in storage
+
+    Copy file in storage
 
 * ### `POST /move_file`
-Move file from one directory to another
+
+    Move file from one directory to another
