@@ -3,7 +3,7 @@ version: "3"
 services:
   naming-server:
     build: naming_server
-    image: dfs-naming-server
+    image: regzon/dfs-naming-server
     environment:
       DJANGO_SECRET_KEY: $NAMING_DJANGO_SECRET_KEY
       DJANGO_ALLOWED_HOSTS: $NAMING_DJANGO_ALLOWED_HOSTS
@@ -11,19 +11,19 @@ services:
     volumes:
       - database:/application/database
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:80:80"
 
-  storage-server:
+  storage-server-1:
     build: storage_server
-    image: dfs-storage-server
+    image: regzon/dfs-naming-server
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
       NAMING_SERVER: "http://naming-server"
 
-  storage-server2:
+  storage-server-2:
     build: storage_server
-    image: dfs-storage-server
+    image: regzon/dfs-naming-server
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
