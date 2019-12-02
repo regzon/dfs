@@ -268,16 +268,16 @@ Move file from one directory to another
     }
     ```
     
-    #### Return
+   #### Return
     
-    *On success:*
+   *On success:*
     ```
     {
       "status": "success"
     }
     ```
     
-    *On error:*
+   *On error:*
     ```
     {
       "status": "error",
@@ -285,10 +285,10 @@ Move file from one directory to another
     }
     ```
     
-    #### Error Messages
+   #### Error Messages
     
-    *When source file doesn't exist:* `Source file does not exist`
-    *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
+   *When source file doesn't exist:* `Source file does not exist`
+   *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
     
 
     
