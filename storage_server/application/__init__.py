@@ -29,6 +29,10 @@ def create_app():
         path = os.path.normpath(path)
         return os.path.join(app.config['UPLOAD_FOLDER'], path[1:])
 
+    @app.route('/check')
+    def check():
+        return jsonify({})
+
     @app.route('/initialize_root', methods=['POST'])
     def initialize_root():
         logger.info("Received a root initialization request")
@@ -88,6 +92,54 @@ def create_app():
             attachment_filename=filename,
         )
 
+    @app.route('/copy_file', methods=['POST'])
+    def copy_file():
+        logger.info("Received a file copy request")
+        if 'source_path' not in request.form:
+            logger.warning("Request to file copy without source_path")
+            return "Parameter source_path is required", 400
+        source_path = request.form['source_path']
+
+        if 'dest_path' not in request.form:
+            logger.warning("Request to file copy without dest_path")
+            return "Parameter dest_path is required", 400
+        dest_path = request.form['dest_path']
+
+        local_source_path = get_local_path(source_path)
+        local_dest_path = get_local_path(dest_path)
+        directories, _ = os.path.split(local_dest_path)
+        os.makedirs(directories, exist_ok=True)
+
+        shutil.copyfile(local_source_path, local_dest_path)
+        update_file_status.spool(dest_path, status='ready')
+
+        logger.info("Finished copying a file")
+        return jsonify({})
+
+    @app.route('/move_file', methods=['POST'])
+    def move_file():
+        logger.info("Received a file move request")
+        if 'source_path' not in request.form:
+            logger.warning("Request to file move without source_path")
+            return "Parameter source_path is required", 400
+        source_path = request.form['source_path']
+
+        if 'dest_path' not in request.form:
+            logger.warning("Request to file move without dest_path")
+            return "Parameter dest_path is required", 400
+        dest_path = request.form['dest_path']
+
+        local_source_path = get_local_path(source_path)
+        local_dest_path = get_local_path(dest_path)
+        directories, _ = os.path.split(local_dest_path)
+        os.makedirs(directories, exist_ok=True)
+
+        shutil.move(local_source_path, local_dest_path)
+        update_file_status.spool(dest_path, status='ready')
+
+        logger.info("Finished moving a file")
+        return jsonify({})
+
     @app.route('/delete_file', methods=['POST'])
     def delete_file():
         logger.info("Received a file deletion request")
@@ -136,6 +188,8 @@ def create_app():
         request_data = {'path': path}
         response = requests.get(download_url, params=request_data)
         local_path = get_local_path(path)
+        directories, _ = os.path.split(local_path)
+        os.makedirs(directories, exist_ok=True)
         with open(local_path, 'wb') as f:
             f.write(response.content)
         update_file_status.spool(path, status='ready')

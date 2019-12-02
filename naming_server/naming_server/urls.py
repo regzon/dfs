@@ -9,6 +9,7 @@ urlpatterns = [
     path('delete_file', views.delete_file, name='delete_file'),
     path('get_file_info', views.get_file_info, name='get_file_info'),
     path('copy_file', views.copy_file, name='copy_file'),
+    path('move_file', views.move_file, name='move_file'),
     path('read_dir', views.read_dir, name='read_dir'),
     path('create_dir', views.create_dir, name='create_dir'),
     path('delete_dir', views.delete_dir, name='delete_dir'),

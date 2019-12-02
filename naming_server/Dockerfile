@@ -16,6 +16,8 @@ ENV DJANGO_SECRET_KEY= \
     DJANGO_ALLOWED_HOSTS= \
     DJANGO_DEBUG=False
 
+VOLUME ["/spools"]
+
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:80"]
+CMD ["uwsgi"]

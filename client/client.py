@@ -87,8 +87,11 @@ class Client:
             print(message)
         return None
 
-    def write_file(self, path, file):
+    def write_file(self, path, real_path):
+        if not os.path.exists(real_path):
+            raise Exception(f"File {real_path} does not exist")
         request_data = dump_path(path)
+        request_data['size'] = os.path.getsize(real_path)
         url = urllib.parse.urljoin(self.nameserver_address, 'write_file')
         response = requests.post(url, data=request_data)
         response_json = json.loads(response.text)
@@ -96,7 +99,8 @@ class Client:
             data = response_json['data']
             url = data['upload_url']
             print('Upload link: ', url)
-            requests.post(url, data=request_data, files={'file': file})
+            with open(real_path, 'rb') as file:
+                requests.post(url, data=request_data, files={'file': file})
             return url
         elif get_status(response_json) == 'error':
             message = response_json['message']
@@ -138,6 +142,19 @@ class Client:
         response_json = json.loads(response.text)
         if get_status(response_json) == 'success':
             print('File was successfully copied')
+        elif get_status(response_json) == 'error':
+            message = response_json['message']
+            print(message)
+
+    def move_file(self, source_path, destination_path):
+        data = {}
+        data['source_path'] = source_path
+        data['destination_path'] = destination_path
+        url = urllib.parse.urljoin(self.nameserver_address, 'move_file')
+        response = requests.post(url, data=data)
+        response_json = json.loads(response.text)
+        if get_status(response_json) == 'success':
+            print('File was successfully moved')
         elif get_status(response_json) == 'error':
             message = response_json['message']
             print(message)

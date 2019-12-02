@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 
 from ipware import get_client_ip
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def directory_from_path(path):
     path = os.path.normpath(path)
-    if path[0] == '/':
+    if path and path[0] == '/':
         path = path[1:]
     parent_dir = Directory.objects.get(parent_dir=None)
     if not path:
@@ -29,8 +28,6 @@ def directory_from_path(path):
 
 def file_from_path(path):
     path = os.path.normpath(path)
-    if path[0] == '/':
-        path = path[1:]
     directories, filename = os.path.split(path)
     directory = directory_from_path(directories)
     if directory is None:
@@ -130,15 +127,18 @@ def read_file(request):
     if file is None:
         data = {'status': 'error', 'message': 'File does not exist'}
         return JsonResponse(data, status=400)
-    stored_file = StoredFile.objects.filter(file=file)
-    if stored_file.state != StoredFile.READY:
+    stored_file_queryset = StoredFile.objects.filter(
+        file=file,
+        status=StoredFile.READY,
+    )
+    if stored_file_queryset.count() == 0:
         data = {
             'status': 'error',
             'message': 'File not in READY state'
         }
         return JsonResponse(data, status=400)
-    storage = file.storages.all()[0]
-    download_url = 'http://' + storage.ip_address + ':5000/download_file'
+    storage = stored_file_queryset[0].storage
+    download_url = storage.url + '/download_file'
     data = {
         'status': 'success',
         'data': {'download_url': download_url},
@@ -158,6 +158,7 @@ def write_file(request):
         return JsonResponse(data, status=400)
 
     path = request.POST['path']
+    size = int(request.POST['size'])
     directory_path, filename = os.path.split(path)
     directory = directory_from_path(directory_path)
     if directory is None:
@@ -171,6 +172,8 @@ def write_file(request):
         name=filename,
         parent_dir=directory,
     )
+    file.size = size
+    file.save()
     first_ip = None
     for storage in Storage.objects.all():
         stored_file, created = StoredFile.objects.get_or_create(
@@ -255,42 +258,130 @@ def get_file_info(request):
 
 def copy_file(request):
     if request.method != 'POST':
-        data = {'status': 'error',
-                'message': f'Not correct method type. Get {request.method}\
-                 insted POST'
-                }
+        data = {
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted POST'
+            )
+        }
         return JsonResponse(data, status=400)
+
     source_path = request.POST['source_path']
     dest_path = request.POST['destination_path']
 
     source_file = file_from_path(source_path)
-    dest_dir = directory_from_path(dest_path)
 
     if source_file is None:
         data = {
             'status': 'error',
-            'message': 'Source file does not exist'
+            'message': 'File does not exist'
         }
         return JsonResponse(data, status=400)
-    if dest_dir is None:
+
+    directories, filename = os.path.split(dest_path)
+    dest_parent_dir = directory_from_path(directories)
+
+    if dest_parent_dir is None:
         data = {
             'status': 'error',
-            'message': f'Invalid destination path: Directory {dest_dir}'
-            f'does not exist'
+            'message': f'Destination directory does not exist',
         }
         return JsonResponse(data, status=400)
-    directory_path, filename = os.path.split(source_file)
-    directory = directory_from_path(directory_path)
-    if directory is None:
+
+    stored_file_queryset = StoredFile.objects.filter(
+        file=source_file,
+        status=StoredFile.READY,
+    )
+
+    if not stored_file_queryset.exists():
         data = {
             'status': 'error',
-            'message': 'Parent directory does not exist',
+            'message': f'No storage available for this file',
+        }
+        return JsonResponse(data, status=500)
+
+    stored_file = stored_file_queryset[0]
+    storage = stored_file.storage
+    dest_file = File.objects.create(
+        name=filename,
+        parent_dir=dest_parent_dir,
+    )
+    StoredFile.objects.create(
+        file=dest_file,
+        storage=storage,
+        status=StoredFile.UPLOADING,
+    )
+    storage.copy_file(source_path, dest_path)
+
+    data = {'status': 'success'}
+    return JsonResponse(data)
+
+
+def move_file(request):
+    if request.method != 'POST':
+        data = {
+            'status': 'error',
+            'message': (
+                f'Not correct method type.'
+                f' Get {request.method} insted POST'
+            )
         }
         return JsonResponse(data, status=400)
-    source_file = File.objects.create(name=filename, parent_dir=directory)
-    stored_file = StoredFile.objects.create(file=source_file)
-    stored_file.status = StoredFile.READY
-    # TODO: add function to copy file
+
+    source_path = request.POST['source_path']
+    dest_path = request.POST['destination_path']
+
+    source_file = file_from_path(source_path)
+
+    if source_file is None:
+        data = {
+            'status': 'error',
+            'message': 'File does not exist'
+        }
+        return JsonResponse(data, status=400)
+
+    directories, filename = os.path.split(dest_path)
+    dest_parent_dir = directory_from_path(directories)
+
+    if dest_parent_dir is None:
+        data = {
+            'status': 'error',
+            'message': f'Destination directory does not exist',
+        }
+        return JsonResponse(data, status=400)
+
+    stored_file_queryset = StoredFile.objects.filter(
+        file=source_file,
+        status=StoredFile.READY,
+    )
+
+    if not stored_file_queryset.exists():
+        data = {
+            'status': 'error',
+            'message': f'No storage available for this file',
+        }
+        return JsonResponse(data, status=500)
+
+    stored_file = stored_file_queryset[0]
+    main_storage = stored_file.storage
+
+    for stored_file in stored_file_queryset.exclude(storage=main_storage):
+        stored_file.storage.delete_file(source_path)
+    source_file.delete()
+
+    dest_file = File.objects.create(
+        name=filename,
+        parent_dir=dest_parent_dir,
+    )
+    StoredFile.objects.create(
+        file=dest_file,
+        storage=main_storage,
+        status=StoredFile.UPLOADING,
+    )
+    main_storage.move_file(source_path, dest_path)
+
+    data = {'status': 'success'}
     return JsonResponse(data)
 
 
@@ -403,6 +494,7 @@ def storage_heartbeat(request):
 def storage_update_status(request):
     logger.info("Received a storage status update request")
     path = request.POST['path']
+    logger.info(f"Path: {path}")
     file = file_from_path(path)
     storage_ip, _ = get_client_ip(request)
     storage = Storage.objects.get(ip_address=storage_ip)
@@ -412,7 +504,7 @@ def storage_update_status(request):
     if waiting.count() == 0:
         logger.info("Zero storages are waiting for file transfer")
         return JsonResponse({})
-    download_url = 'http://' + storage.ip_address + ':5000/download_file'
+    download_url = storage.url + '/download_file'
     logger.info(f"Transfer download url: {download_url}")
     dst_stored_file = waiting[0]
     dst_storage = dst_stored_file.storage

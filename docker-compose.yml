@@ -5,6 +5,8 @@ services:
     build: naming_server
     image: regzon/dfs-naming-server
     environment:
+      UWSGI_PROCESSES: $NAMING_UWSGI_PROCESSES
+      UWSGI_THREADS: $NAMING_UWSGI_THREADS
       DJANGO_SECRET_KEY: $NAMING_DJANGO_SECRET_KEY
       DJANGO_ALLOWED_HOSTS: $NAMING_DJANGO_ALLOWED_HOSTS
       DJANGO_DEBUG: $NAMING_DJANGO_DEBUG
@@ -19,7 +21,7 @@ services:
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
-      NAMING_SERVER: "http://naming-server"
+      NAMING_SERVER: "http://naming-server:8000"
 
   storage-server-2:
     build: storage_server
@@ -27,7 +29,7 @@ services:
     environment:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
-      NAMING_SERVER: "http://naming-server"
+      NAMING_SERVER: "http://naming-server:8000"
 
 volumes:
   database:

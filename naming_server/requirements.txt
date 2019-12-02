@@ -1,3 +1,4 @@
 django~=2.2.7
 django-ipware~=2.1.0
 requests~=2.22.0
+uwsgi~=2.0.18
