@@ -13,6 +13,8 @@ Gleb Petrakov <br>
 
 ## Structure
 
+![Architecture](docs/schema.png)
+
 ### `client`
 
 A simple Python package to perform operations to FS from user space.
