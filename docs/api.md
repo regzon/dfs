@@ -235,6 +235,7 @@
     #### Return
     
     *On success:*
+    
     ```
     {
       "status": "success"
@@ -242,6 +243,7 @@
     ```
     
     *On error:*
+    
     ```
     {
       "status": "error",
@@ -251,7 +253,7 @@
     
     #### Error Messages
     
-    *When source file doesn't exist:* `Source file does not exist`
+    *When source file doesn't exist:*  `Source file does not exist`
     *When destination path is invalid:* `Invalid destination path: Directory <directory_path> does not exist`
     
     
@@ -271,19 +273,21 @@ Move file from one directory to another
    #### Return
     
    *On success:*
-    ```
+   
+   ```
     {
       "status": "success"
     }
-    ```
+   ```
     
    *On error:*
-    ```
-    {
-      "status": "error",
-      "message": <error_message>
-    }
-    ```
+   
+   ```
+   {
+     "status": "error",
+     "message": <error_message>
+   }
+   ```
     
    #### Error Messages
     
