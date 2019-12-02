@@ -25,7 +25,7 @@ Create a new instance of client with `Client(nameserver_addr)`, where `nameserve
 
 A Django server for managing storage nodes and to transit filesystem operations to storage servers.
 
-Original Docker image: `regzon/dfs-naming-server`
+Original Docker image: `regzon/dfs-naming-server` 
 
 Port: 6500
 
@@ -45,8 +45,11 @@ Execute to export variables manually: <br>
 
 Images: <br>
 
-`regzon/dfs-naming-server` - naming server image.
-`regzon/dfs-storage-server` - storage server image.
+`regzon/dfs-naming-server` - naming server image. <br>
+https://hub.docker.com/r/regzon/dfs-naming-server <br>
+
+`regzon/dfs-storage-server` - storage server image. <br>
+https://hub.docker.com/r/regzon/dfs-storage-server <br>
 
 #### Build
 
