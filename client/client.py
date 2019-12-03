@@ -76,6 +76,9 @@ class Client:
         if get_status(response_json) == 'success':
             data = response_json['data']
             url = data['download_url']
+            storage_pos = url.find(':', 6)
+            naming_pos = self.nameserver_address.find(':', 6)
+            url = self.nameserver_address[:naming_pos] + url[storage_pos:]
             response = requests.get(url, params=request_data)
             filename = os.path.basename(path)
             with open('DFS/' + filename, 'wb') as f:
@@ -98,6 +101,9 @@ class Client:
         if get_status(response_json) == 'success':
             data = response_json['data']
             url = data['upload_url']
+            storage_pos = url.find(':', 6)
+            naming_pos = self.nameserver_address.find(':', 6)
+            url = self.nameserver_address[:naming_pos] + url[storage_pos:]
             print('Upload link: ', url)
             with open(real_path, 'rb') as file:
                 requests.post(url, data=request_data, files={'file': file})

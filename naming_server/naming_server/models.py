@@ -19,21 +19,22 @@ class Directory(models.Model):
 
 class Storage(models.Model):
     ip_address = models.GenericIPAddressField()
+    service_port = models.IntegerField()
     files = models.ManyToManyField(
         'File',
         related_name='storages',
         through='StoredFile',
     )
-    available_size = models.IntegerField()
+    available_size = models.BigIntegerField()
     last_heartbeat = models.DateTimeField()
 
     @property
     def url(self):
-        return 'http://' + self.ip_address + ':5000'
+        return f'http://{self.ip_address}:{self.service_port}'
 
     def initialize(self):
         response = send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/initialize_root',
             method='post',
         )
@@ -41,7 +42,7 @@ class Storage(models.Model):
 
     def create_file(self, path):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/create_file',
             method='post',
             data={'path': path},
@@ -49,7 +50,7 @@ class Storage(models.Model):
 
     def delete_file(self, path):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/delete_file',
             method='post',
             data={'path': path},
@@ -57,7 +58,7 @@ class Storage(models.Model):
 
     def delete_dir(self, path):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/delete_dir',
             method='post',
             data={'path': path},
@@ -66,7 +67,7 @@ class Storage(models.Model):
     def transfer(self, path, download_url):
         logger.info(f"Transfering with {path} from {download_url}")
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/transfer',
             method='post',
             data={'path': path, 'download_url': download_url},
@@ -74,7 +75,7 @@ class Storage(models.Model):
 
     def copy_file(self, source_path, dest_path):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/copy_file',
             method='post',
             data={'source_path': source_path, 'dest_path': dest_path},
@@ -82,7 +83,7 @@ class Storage(models.Model):
 
     def move_file(self, source_path, dest_path):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/move_file',
             method='post',
             data={'source_path': source_path, 'dest_path': dest_path},
@@ -90,7 +91,7 @@ class Storage(models.Model):
 
     def check_availability(self):
         send_request(
-            self.ip_address,
+            self.ip_address, self.service_port,
             uri='/check',
         )
 

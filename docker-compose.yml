@@ -10,10 +10,21 @@ services:
       DJANGO_SECRET_KEY: $NAMING_DJANGO_SECRET_KEY
       DJANGO_ALLOWED_HOSTS: $NAMING_DJANGO_ALLOWED_HOSTS
       DJANGO_DEBUG: $NAMING_DJANGO_DEBUG
-    volumes:
-      - database:/application/database
+      DJANGO_DATABASE_NAME: "pgdb"
+      DJANGO_DATABASE_USER: "pguser"
+      DJANGO_DATABASE_PASSWORD: "pgpassword"
+      DJANGO_DATABASE_HOST: "postgres"
+      DJANGO_DATABASE_PORT: "5432"
     ports:
-      - "127.0.0.1:80:80"
+      - "80:80"
+
+  postgres:
+    image: "postgres:10.4"
+    environment:
+      - "PGDATA=/var/lib/postgresql/data/pgdata"
+      - "POSTGRES_DB=pgdb"
+      - "POSTGRES_USER=pguser"
+      - "POSTGRES_PASSWORD=pgpassword"
 
   storage-server-1:
     build: storage_server
@@ -22,8 +33,9 @@ services:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
       NAMING_SERVER: "http://naming-server"
+      SERVICE_PORT: 5000
     ports:
-      - "127.0.0.1:5000:5000"
+      - "5000:5000"
 
   storage-server-2:
     build: storage_server
@@ -32,8 +44,9 @@ services:
       UWSGI_PROCESSES: $STORAGE_UWSGI_PROCESSES
       UWSGI_THREADS: $STORAGE_UWSGI_THREADS
       NAMING_SERVER: "http://naming-server"
+      SERVICE_PORT: 5001
     ports:
-      - "127.0.0.1:5000:5000"
+      - "5001:5001"
 
 volumes:
   database:

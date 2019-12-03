@@ -2,7 +2,7 @@ from time import sleep
 from client import Client
 
 if __name__ == '__main__':
-    client = Client('http://localhost:8000')
+    client = Client('http://104.248.137.248:80')
     response = client.init()
     response = client.create_dir('/kek/')
     response = client.create_file('/kek/main.txt')

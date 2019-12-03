@@ -19,7 +19,7 @@ if [ "$1" = 'uwsgi' ]; then
     --import=application.tasks \
     --processes=$UWSGI_PROCESSES \
     --threads=$UWSGI_THREADS \
-    --http-socket=0.0.0.0:5000
+    --http-socket=0.0.0.0:$SERVICE_PORT
 fi
 
 exec $@

@@ -29,4 +29,5 @@ def empty_the_directory(path):
 
 
 def get_available_size():
-    return 10
+    _, _, free = shutil.disk_usage('/data')
+    return free

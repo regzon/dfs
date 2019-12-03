@@ -1,4 +1,5 @@
 import os
+import socket
 import logging
 import requests
 import urllib.parse
@@ -11,12 +12,13 @@ from .utils import get_available_size
 logger = logging.getLogger(__name__)
 
 
-def get_storage_id():
-    return os.environ['STORAGE_ID']
+def get_host_ip():
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    return ip_address
 
 
 def send_to_naming_server(url, data):
-    data['storage_id'] = get_storage_id()
     naming_server = os.environ['NAMING_SERVER']
     full_url = urllib.parse.urljoin(naming_server, url)
 
@@ -42,7 +44,11 @@ def send_to_naming_server(url, data):
 def send_heartbeat(signum):
     logger.info(f"Sending a heartbeat")
     url = 'storage/heartbeat'
-    data = {'size': get_available_size()}
+    data = {
+        'size': get_available_size(),
+        'ip_address': get_host_ip(),
+        'port': os.environ['SERVICE_PORT'],
+    }
     result = send_to_naming_server(url, data)
     if not result:
         logger.error("Failed sending heartbeat")
@@ -52,7 +58,12 @@ def send_heartbeat(signum):
 def update_file_status(path, status):
     logger.info(f"Updating file {path} status to {status}")
     url = 'storage/update_status'
-    data = {'path': path, 'status': status}
+    data = {
+        'path': path,
+        'status': status,
+        'ip_address': get_host_ip(),
+        'port': os.environ['SERVICE_PORT'],
+    }
     result = send_to_naming_server(url, data)
     if not result:
         logger.error("Failed updating file status. Retrying...")

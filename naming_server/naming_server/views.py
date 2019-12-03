@@ -1,7 +1,6 @@
 import os
 import logging
 
-from ipware import get_client_ip
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -174,25 +173,25 @@ def write_file(request):
     )
     file.size = size
     file.save()
-    first_ip = None
+    first_storage = None
     for storage in Storage.objects.all():
         stored_file, created = StoredFile.objects.get_or_create(
             storage=storage,
             file=file,
         )
-        if first_ip is None:
-            first_ip = storage.ip_address
+        if first_storage is None:
+            first_storage = storage
             stored_file.status = StoredFile.UPLOADING
         else:
             stored_file.status = StoredFile.WAITING
         stored_file.save()
-    if first_ip is None:
+    if first_storage is None:
         data = {
             'status': 'error',
             'message': "No storage servers available",
         }
         return JsonResponse(data, status=500)
-    upload_url = 'http://' + first_ip + ':5000/upload_file'
+    upload_url = first_storage.url + '/upload_file'
     data = {
         'status': 'success',
         'data': {'upload_url': upload_url}
@@ -470,15 +469,20 @@ def delete_dir(request):
 
 def storage_heartbeat(request):
     logger.info("Received a storage heartbeat request")
-    storage_ip, _ = get_client_ip(request)
-    storage_obj = Storage.objects.filter(ip_address=storage_ip)
+    ip_address = request.POST['ip_address']
+    port = int(request.POST['port'])
+    storage_obj = Storage.objects.filter(
+        ip_address=ip_address,
+        service_port=port,
+    )
     if not storage_obj.exists():
         logger.info(
             "Creating a storage object with"
-            f" ip address {storage_ip} and size {request.POST['size']}"
+            f" ip {ip_address}, size {request.POST['size']}, port {port}"
         )
         Storage.objects.create(
-            ip_address=storage_ip,
+            ip_address=ip_address,
+            service_port=port,
             available_size=request.POST['size'],
             last_heartbeat=timezone.now(),
         )
@@ -493,11 +497,12 @@ def storage_heartbeat(request):
 
 def storage_update_status(request):
     logger.info("Received a storage status update request")
+    ip_address = request.POST['ip_address']
+    port = int(request.POST['port'])
     path = request.POST['path']
     logger.info(f"Path: {path}")
     file = file_from_path(path)
-    storage_ip, _ = get_client_ip(request)
-    storage = Storage.objects.get(ip_address=storage_ip)
+    storage = Storage.objects.get(ip_address=ip_address, service_port=port)
     StoredFile.objects.filter(storage=storage, file=file) \
         .update(status=StoredFile.READY)
     waiting = file.stored_files.filter(status=StoredFile.WAITING)

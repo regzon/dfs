@@ -51,6 +51,6 @@ def check_storages(signum):
         try:
             storage.check_availability()
         except Exception:
-            logger.warning("Storage {storage.ip_address} is unavailable")
+            logger.warning(f"Storage {storage.ip_address} is unavailable")
             storage.delete()
     logger.info("Finished checking storages")
