@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Build storage server
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: regzon/dfs-storage-server
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Build naming server
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: regzon/dfs-naming-server
           username: ${{ secrets.DOCKER_USERNAME }}
